@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "detect": "tsx src/detection/anomaly.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "npx tsx --test tests/*.test.ts"
   },
   "keywords": ["network-monitoring", "anomaly-detection", "security", "soc", "nids"],
   "license": "MIT",
