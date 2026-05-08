@@ -1,0 +1,28 @@
+{
+  "name": "packetwatch",
+  "version": "1.0.0",
+  "description": "Network anomaly detection engine. Behavioral baselines, z-score detection, and edge-collected metrics analysis.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "detect": "tsx src/detection/anomaly.ts",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": ["network-monitoring", "anomaly-detection", "security", "soc", "nids"],
+  "license": "MIT",
+  "dependencies": {
+    "hono": "^4.7.0",
+    "better-sqlite3": "^11.8.0",
+    "dotenv": "^16.4.0",
+    "@hono/node-server": "^1.13.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "@types/node": "^22.0.0",
+    "@types/better-sqlite3": "^7.6.0",
+    "tsx": "^4.19.0"
+  }
+}
