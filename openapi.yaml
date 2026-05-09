@@ -1,0 +1,186 @@
+openapi: "3.0.3"
+info:
+  title: PacketWatch — Network Anomaly Detection
+  description: Behavioral baselines and z-score anomaly detection for network metrics from edge sensors, DNS servers, VPN gateways.
+  version: 1.0.0
+  contact:
+    name: makhembu
+    url: https://github.com/makhembu/packetwatch
+
+servers:
+  - url: http://localhost:3003
+    description: Local development
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service status with metric and anomaly counts
+
+  /metrics:
+    post:
+      summary: Ingest single metric
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source, metricType, value]
+              properties:
+                source: { type: string, example: edge_sensor }
+                sourceLabel: { type: string }
+                metricType: { type: string, example: bytes_in }
+                value: { type: number }
+                unit: { type: string, example: bytes }
+                tags: { type: array, items: { type: string } }
+      responses:
+        "201":
+          description: Metric recorded
+    get:
+      summary: Query metrics
+      parameters:
+        - name: source
+          in: query
+          schema: { type: string }
+        - name: type
+          in: query
+          schema: { type: string }
+        - name: since
+          in: query
+          schema: { type: string, format: date-time }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100, maximum: 1000 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: Paginated metric list
+
+  /metrics/batch:
+    post:
+      summary: Batch ingest metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [metrics]
+              properties:
+                metrics:
+                  type: array
+                  items:
+                    type: object
+                    required: [source, metricType, value]
+                    properties:
+                      source: { type: string }
+                      sourceLabel: { type: string }
+                      metricType: { type: string }
+                      value: { type: number }
+                      unit: { type: string }
+                      tags: { type: array, items: { type: string } }
+      responses:
+        "201":
+          description: Batch recorded with count
+
+  /baselines/compute:
+    post:
+      summary: Compute baselines for all source/metric pairs
+      responses:
+        "200":
+          description: Baselines computed with count
+
+  /baselines:
+    get:
+      summary: List all baselines
+      responses:
+        "200":
+          description: Array of baseline objects
+
+  /baselines/{source}/{type}:
+    get:
+      summary: Get baseline for a specific source/metric pair
+      parameters:
+        - name: source
+          in: path
+          required: true
+          schema: { type: string }
+        - name: type
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Baseline with mean, stddev, computed_at
+        "404":
+          description: Baseline not found
+
+  /detect/run:
+    post:
+      summary: Run full anomaly detection
+      responses:
+        "200":
+          description: Detection results with anomaly count
+
+  /detect/{source}/{type}:
+    post:
+      summary: Detect anomalies for a specific metric
+      parameters:
+        - name: source
+          in: path
+          required: true
+          schema: { type: string }
+        - name: type
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Anomalies detected for the metric pair
+
+  /anomalies:
+    get:
+      summary: List anomalies
+      parameters:
+        - name: severity
+          in: query
+          schema: { type: string, enum: [low, medium, high, critical] }
+        - name: acknowledged
+          in: query
+          schema: { type: string, enum: [true, false] }
+        - name: source
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, maximum: 500 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: Paginated anomaly list
+
+  /anomalies/{id}/acknowledge:
+    post:
+      summary: Acknowledge an anomaly
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Anomaly acknowledged
+
+  /dashboard:
+    get:
+      summary: Dashboard summary
+      responses:
+        "200":
+          description: Aggregated metrics, anomalies, and baselines stats

@@ -14,6 +14,33 @@ npm start
 # Server running at http://localhost:3003
 ```
 
+## Architecture
+
+```mermaid
+flowchart LR
+    Feeds["Threat Feeds"] --> Iris["iris<br/>IOC Aggregation<br/>Port 3000"]
+    Iris --> Sentry["sentry<br/>Port 3001"]
+    Iris --> PhishKit["phishkit<br/>Port 3002"]
+    Iris --> PacketWatch["packetwatch (this service)<br/>Anomaly Detection<br/>Port 3003"]
+    Sentry --> Trace["trace<br/>Incident Correlation<br/>Port 3004"]
+    PhishKit --> Trace
+    PacketWatch --> Trace
+    Trace --> Nexus["nexus<br/>Dashboard & Gateway<br/>Port 3100"]
+```
+
+packetwatch ingests network metrics, computes behavioral baselines, and detects anomalies that feed into trace for incident correlation.
+
+## Docker
+
+```bash
+# Build and run standalone
+docker build -t packetwatch .
+docker run -p 3003:3003 packetwatch
+
+# Run the full ecosystem
+docker compose -f ../nexus/docker-compose.yml up
+```
+
 ## API
 
 ### Ingest metrics
